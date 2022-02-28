@@ -1,197 +1,43 @@
 const {databases} = require("../db.js");
 const reader = require('xlsx');
 const fs = require('fs');
-var nodemailer = require('nodemailer');
-var path_name = __dirname + '/../response.xls';
-
-const username = 'roshan.kumar';
-const password = 'Dvara@2022';
-const encodedBase64Token = Buffer.from(`${username}:${password}`).toString('base64');
-const authorization = `Basic ${encodedBase64Token}`;
-var request = require('request');
-loan_url = "https://dvara.finos.tech/fineract-provider/api/v1/loans";
-report_url = "https://dvara.finos.tech/fineract-provider/api/v1/reports";
-client_url = "https://dvara.finos.tech/fineract-provider/api/v1/clients";
-
-console.log(authorization);
 
 
-const listallloan = async (req, res, next) => {
-  console.log(req.body);
-request(
-    {
-        url : loan_url,
-        headers : {
-            "Authorization" : authorization,
-            "Fineract-Platform-TenantId": 'default'
-        }
-    },
-    function (error, response, body) {
-      const usersRef = databases[3].ref(`/Files/FinOS/`).child("loans");
-      var final_data = JSON.parse(body);
-      console.log(final_data.pageItems);
-      usersRef.update(final_data.pageItems);
-      res.json({Status:"Successfully", message: "Mail Sent Successfully", data :final_data.pageItems, Code:200});
+const list_total_no_of_farmer_cattles = async (req, res, next) => {
+  var leadsRef = databases[3].ref(`/data/farmers`);
+  leadsRef.on('value',async function(snapshot) {
+  var userdevice_data = snapshot.val();
+  final_data = [];
+  total_farmervalue = 0;
+  total_cattlevalue = 0
+  for (let devicelist of Object.keys(userdevice_data)) {
+    var capital = userdevice_data[devicelist];
+    total_farmervalue = total_farmervalue + 1;
+    var temp_data = capital.cattle
+    console.log("next");
+    var temp_count = 0;
+    for (let caplist of Object.keys(temp_data)) {
+      console.log(caplist);
+      total_cattlevalue = total_cattlevalue  +  1;
+      temp_count = temp_count + 1;
     }
-);
-
-
-
-}
-
-const findloanbyId = async (req, res, next) => {
-  request(
-      {
-          url : loan_url+'/'+req.body.loanId,
-          headers : {
-              "Authorization" : authorization,
-              "Fineract-Platform-TenantId": 'default'
-          }
-      },
-      function (error, response, body) {
-        const usersRef = databases[3].ref(`/Files/FinOS/`).child("loans");
-        var final_data = JSON.parse(body);
-        usersRef.update(final_data.pageItems);
-        res.json({Status:"Successfully", message: "Mail Sent Successfully", data :final_data.pageItems, Code:200});
-      }
-  );
-  
-  
-  
+    final_data.push({
+      phone_number: devicelist,
+      farmer_count : 1,
+      cattle_count : temp_count
+    });
+  }  
+  final_output = {
+    final_data : final_data,
+    total_farmer_count : total_farmervalue,
+    total_cattle_count : total_cattlevalue
   }
-
-const findloanTransactions = async (req, res, next) => {
-  request(
-      {
-          url : loan_url+'/'+req.body.loanId+'/transactions/'+req.body.transactionId,
-          headers : {
-              "Authorization" : authorization,
-              "Fineract-Platform-TenantId": 'default'
-          }
-      },
-      function (error, response, body) {
-        const usersRef = databases[3].ref(`/Files/FinOS/`).child("loans");
-        var final_data = JSON.parse(body);
-        usersRef.update(final_data.pageItems);
-        res.json({Status:"Successfully", message: "Mail Sent Successfully", data :final_data.pageItems, Code:200});
-      }
-  );
-    
-    
-    
-}
-
-
-const listallreports = async (req, res, next) => {
-  request(
-      {
-          url : report_url,
-          headers : {
-              "Authorization" : authorization,
-              "Fineract-Platform-TenantId": 'default'
-          }
-      },
-      function (error, response, body) {
-        const usersRef = databases[3].ref(`/Files/FinOS/`).child("reports");
-        var final_data = JSON.parse(body);
-        usersRef.update(final_data.pageItems);
-        res.json({Status:"Successfully", message: "Mail Sent Successfully", data :final_data.pageItems, Code:200});
-      }
-  );
-
-}
-
-  const findreportsbyId = async (req, res, next) => {
-    request(
-        {
-            url : report_url+'/'+req.body.id,
-            headers : {
-                "Authorization" : authorization,
-                "Fineract-Platform-TenantId": 'default'
-            }
-        },
-        function (error, response, body) {
-          const usersRef = databases[3].ref(`/Files/FinOS/`).child("reports");
-          var final_data = JSON.parse(body);
-          usersRef.update(final_data.pageItems);
-          res.json({Status:"Successfully", message: "Mail Sent Successfully", data :final_data.pageItems, Code:200});
-        }
-    );
-    
-    
-    
-}
-
-const listallclient = async (req, res, next) => {
-  request(
-      {
-          url : client_url,
-          headers : {
-              "Authorization" : authorization,
-              "Fineract-Platform-TenantId": 'default'
-          }
-      },
-      function (error, response, body) {
-        const usersRef = databases[3].ref(`/Files/FinOS/`).child("clients");
-        var final_data = JSON.parse(body);
-        usersRef.update(final_data.pageItems);
-        res.json({Status:"Successfully", message: "Mail Sent Successfully", data :final_data.pageItems, Code:200});
-      }
-  );
-  
-
-}
-  
-const findclientbyId = async (req, res, next) => {
-    request(
-        {
-            url : client_url+'/'+req.body.clientId,
-            headers : {
-                "Authorization" : authorization,
-                "Fineract-Platform-TenantId": 'default'
-            }
-        },
-        function (error, response, body) {
-          const usersRef = databases[3].ref(`/Files/FinOS/`).child("clients");
-          var final_data = JSON.parse(body);
-          usersRef.update(final_data.pageItems);
-          res.json({Status:"Successfully", message: "Mail Sent Successfully", data :final_data.pageItems, Code:200});
-        }
-    );
-  
-  
-}
-
-
-  
-const findclientAccount = async (req, res, next) => {
-  request(
-      {
-          url : client_url+'/'+req.body.clientId+'/accounts',
-          headers : {
-              "Authorization" : authorization,
-              "Fineract-Platform-TenantId": 'default'
-          }
-      },
-      function (error, response, body) {
-        const usersRef = databases[3].ref(`/Files/FinOS/`).child("clients");
-        var final_data = JSON.parse(body);
-        usersRef.update(final_data.pageItems);
-        res.json({Status:"Successfully", message: "Mail Sent Successfully", data :final_data.pageItems, Code:200});
-      }
-  );
-
-
+  console.log(final_output)
+  res.json({Status:"Successfully", message: "Get Total No of FarmersandCattles", Data : final_output, Code:200});
+  });
 }
 
 
 module.exports = {
-  listallloan,
-  findloanbyId,
-  findloanTransactions,
-  listallreports,
-  findreportsbyId,
-  listallclient,
-  findclientbyId,
-  findclientAccount
+  list_total_no_of_farmer_cattles
 };
